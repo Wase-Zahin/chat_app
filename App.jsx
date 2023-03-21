@@ -1,15 +1,13 @@
-import React from 'react'
-import { ScrollView, StyleSheet, Text } from 'react-native'
+import React from 'react';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import Authenticate from './components/Authenticate';
 
 export default function App() {
-  const styles = StyleSheet.create({
-    app: {
-      backgroundColor: '#ECF2FF', 
-    }
-  })
+  
   return (
-    <ScrollView style={styles.app}>
-      <Text>App</Text>
-    </ScrollView>
+    <NavigationContainer>
+      <Authenticate></Authenticate>
+    </NavigationContainer>
   )
 }
