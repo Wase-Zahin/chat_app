@@ -1,15 +1,41 @@
+import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const Authenticate = () => {
+const Login = ({ navigation }) => {
+  GoogleSignin.configure({
+    webClientId: "807759727777-0rl9t91aclioe8t02d1qp08vlsn3qct8.apps.googleusercontent.com",
+  });
+
   const handleLoginPress = () => {
     // handle login logic
   };
 
   const handleSignupPress = () => {
-    // handle signup logic
+    navigation.navigate('Signup');
   };
+
+  const googleSignIn = async () => {
+    try {
+      // Check if your device supports Google Play
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      // Get the users ID token
+      const { idToken } = await GoogleSignin.signIn();
+  
+      // Create a Google credential with the token
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+  
+      // Sign-in the user with the credential
+      auth().signInWithCredential(googleCredential)
+        .then((user) => console.log(user))
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  
 
   return (
     // input
@@ -36,9 +62,7 @@ const Authenticate = () => {
       {/* icons */}
       <View style={styles.signupContainer}>
         <View style={styles.signupButtonContainer}>
-        <TouchableOpacity style={styles.signupButtonGoogle}>
-            <Icon.Button name="google" size={28} backgroundColor="#fff" color="#000">Login with Google</Icon.Button>
-          </TouchableOpacity>
+          <GoogleSigninButton onPress={googleSignIn} style={styles.signupButtonGoogle}></GoogleSigninButton>
           <TouchableOpacity style={styles.signupButtonFacebook}>
             <Icon.Button name="facebook" size={28} color="#fff" backgroundColor="#007aff">Login with Facebook</Icon.Button>
           </TouchableOpacity>
@@ -117,13 +141,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signupButtonGoogle: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#B2B2B2',
-    padding: 8,
-    borderRadius: 8,
-    alignItems: 'center',
+    height: 56,
+    width: '100%',
   },
 });
 
-export default Authenticate;
+export default Login;

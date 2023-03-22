@@ -1,13 +1,20 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import Authenticate from './components/Authenticate';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Login from './components/Login';
+import ChatList from './components/ChatList';
+import Signup from './components/Signup';
 
 export default function App() {
-  
+  const Stack = createNativeStackNavigator();
+
   return (
     <NavigationContainer>
-      <Authenticate></Authenticate>
+      <Stack.Navigator initialRouteName="Chats">
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Chats" component={ChatList} />
+        <Stack.Screen name="Signup" component={Signup} />
+      </Stack.Navigator>
     </NavigationContainer>
   )
 }
