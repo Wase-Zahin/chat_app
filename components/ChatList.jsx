@@ -1,22 +1,63 @@
-import React from 'react';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, Image, FlatList } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
+
 
 const ChatListItem = () => {
+  const [people, setPeople] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('chats')
+      .onSnapshot(querySnapshot => {
+        const people = [];
+
+        querySnapshot.forEach(documentSnapshot => {
+          people.push({
+            id: documentSnapshot.id,
+            data: documentSnapshot.data(),
+          });
+        });
+
+        setPeople(people);
+      });
+    console.log(people)
+
+    return () => unsubscribe();
+  }, []);
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const chatsCollection = await firestore().collection('chats').doc('lBkE9X55qHxp6nQVoHoi').get();
+  //     console.log(chatsCollection);
+  //   }
+  //   fetchData();
+  // }, [])
+
   return (
     <View style={styles.container}>
-      <Image style={styles.avatar} source={{ uri: 'https://via.placeholder.com/50x50.png' }} />
-      <View style={styles.content}>
-        <View style={styles.upper}>
-          <Text style={styles.name}>John Doe</Text>
-          <Text style={styles.time}>2:30 PM</Text>
-        </View>
-        <View style={styles.lower}>
-          <Text style={styles.message}>Hello! How are you?</Text>
-          <View style={styles.unreadContainer}>
-            <Text style={styles.unreadCount}>3</Text>
+      {people.length ? (
+        <>
+          <Image style={styles.avatar} source={{ uri: 'https://via.placeholder.com/50x50.png' }} />
+          <View style={styles.content}>
+            <View style={styles.upper}>
+              <Text style={styles.name}>{people[0].data.name}</Text>
+              <Text style={styles.time}>2:30 PM</Text>
+            </View>
+            <View style={styles.lower}>
+              <Text style={styles.message}>Hello! How are you?</Text>
+              <View style={styles.unreadContainer}>
+                <Text style={styles.unreadCount}>3</Text>
+              </View>
+            </View>
           </View>
+        </>
+      ) : (
+        <View style={styles.centeredContainer}>
+          <Text style={styles.messageText}>You have no chats currently</Text>
         </View>
-      </View>
+      )}
     </View>
   );
 };
@@ -24,8 +65,6 @@ const ChatListItem = () => {
 const ChatList = () => {
   return (
     <View style={styles.listContainer}>
-      <ChatListItem />
-      <ChatListItem />
       <ChatListItem />
     </View>
   );
@@ -89,6 +128,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'white',
     fontWeight: 'bold',
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  messageText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333333',
   },
 });
 
