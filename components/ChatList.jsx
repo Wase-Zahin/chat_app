@@ -1,133 +1,99 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, FlatList } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Entypo';
+import ChatListItem from './ChatListItem';
+import auth from '@react-native-firebase/auth';
 
+const ChatList = ({ people }) => {
+  const navigation = useNavigation();
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const menuRef = useRef(null);
 
-const ChatListItem = () => {
-  const [people, setPeople] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const handleChatItemPress = (id) => {
+    navigation.navigate('ChatScreen', { chatId: id });
+  };
 
-  useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('chats')
-      .onSnapshot(querySnapshot => {
-        const people = [];
+  const handleMenuPress = () => {
+    setIsMenuVisible(!isMenuVisible);
+  };
 
-        querySnapshot.forEach(documentSnapshot => {
-          people.push({
-            id: documentSnapshot.id,
-            data: documentSnapshot.data(),
-          });
-        });
+  const handleMenuHide = () => {
+    setIsMenuVisible(false);
+  };
 
-        setPeople(people);
-      });
-    console.log(people)
-
-    return () => unsubscribe();
-  }, []);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const chatsCollection = await firestore().collection('chats').doc('lBkE9X55qHxp6nQVoHoi').get();
-  //     console.log(chatsCollection);
-  //   }
-  //   fetchData();
-  // }, [])
+  const logout = () => {
+    auth()
+      .signOut()
+      .then(() => console.log('User signed out!'));
+  }
 
   return (
-    <View style={styles.container}>
-      {people.length ? (
-        <>
-          <Image style={styles.avatar} source={{ uri: 'https://via.placeholder.com/50x50.png' }} />
-          <View style={styles.content}>
-            <View style={styles.upper}>
-              <Text style={styles.name}>{people[0].data.name}</Text>
-              <Text style={styles.time}>2:30 PM</Text>
-            </View>
-            <View style={styles.lower}>
-              <Text style={styles.message}>Hello! How are you?</Text>
-              <View style={styles.unreadContainer}>
-                <Text style={styles.unreadCount}>3</Text>
-              </View>
-            </View>
-          </View>
-        </>
-      ) : (
-        <View style={styles.centeredContainer}>
-          <Text style={styles.messageText}>You have no chats currently</Text>
+    <TouchableWithoutFeedback onPress={handleMenuHide}>
+      <View style={{ flex: 1 }}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Chats</Text>
+          <TouchableOpacity onPress={handleMenuPress}>
+            <Icon name="menu" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
-      )}
-    </View>
-  );
-};
+        <View style={styles.listContainer}>
+          {people.length > 0 ? (
+            people.map((person) => (
+              <TouchableOpacity
+                key={person.id}
+                onPress={() => handleChatItemPress(person.id)}
+              >
+                <ChatListItem name={person.data.name} />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.centeredContainer}>
+              <Text style={styles.messageText}>You have no chats currently</Text>
+            </View>
+          )}
+        </View>
+        {isMenuVisible && (
+          <View style={styles.overlay}>
+            <TouchableWithoutFeedback onPress={() => { }}>
+              <View style={styles.menu} ref={menuRef}>
+                <Text style={styles.menuBar}>Menu</Text>
+                <View style={styles.menuItemContainer}>
+                  <Text style={styles.menuItem} onPress={logout}>Logout</Text>
+                  <View style={styles.separator} />
+                  <Text style={styles.menuItem}>Menu Item 2</Text>
+                  <View style={styles.separator} />
+                  <Text style={styles.menuItem}>Menu Item 3</Text>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        )}
 
-const ChatList = () => {
-  return (
-    <View style={styles.listContainer}>
-      <ChatListItem />
-    </View>
+
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
+  header: {
+    backgroundColor: '#2e64e5',
+    height: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
   listContainer: {
     flex: 1,
     backgroundColor: '#F5F5F5',
     padding: 10,
-  },
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 10,
-  },
-  content: {
-    flex: 1,
-  },
-  upper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 5,
-  },
-  lower: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  name: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    color: '#333',
-  },
-  time: {
-    fontSize: 12,
-    color: '#999',
-  },
-  message: {
-    fontSize: 14,
-    color: '#666',
-    flex: 1,
-  },
-  unreadContainer: {
-    backgroundColor: '#00BFFF',
-    borderRadius: 10,
-    marginLeft: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  unreadCount: {
-    fontSize: 12,
-    color: 'white',
-    fontWeight: 'bold',
   },
   centeredContainer: {
     flex: 1,
@@ -141,6 +107,52 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333333',
   },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+  },
+  menu: {
+    backgroundColor: '#fff',
+    width: '80%',
+    height: '100%',
+    padding: 10,
+    alignSelf: 'flex-start',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  menuBar: {
+    textAlign: 'center',
+    fontSize: 24,
+    padding: 10,
+    fontWeight: 'bold',
+    borderBottomWidth: 1,
+    width: '100%',
+    borderBottomColor: 'black',
+  },
+  menuItemContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  menuItem: {
+    fontSize: 16,
+    paddingVertical: 10,
+  },
+  separator: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    width: '100%',
+  },
+
 });
+
 
 export default ChatList;

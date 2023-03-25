@@ -1,9 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import auth from '@react-native-firebase/auth';
 
-const Signup = ({ navigation }) => {
+const Signup = ({ navigation, setSignupEmail, signupEmail, signupUsername, setSignupUsername, signupPassword, setSignupPassword }) => {
     const handleSignupPress = () => {
-        // handle signup logic
+        auth()
+            .createUserWithEmailAndPassword(signupEmail, signupPassword)
+            .then(() => {
+                console.log('User account created & signed in!');
+                setSignupEmail('');
+                setSignupPassword('');
+                setSignupUsername('');
+            })
+            .catch(error => {
+                if (error.code === 'auth/email-already-in-use') {
+                    console.log('That email address is already in use!');
+                }
+
+                if (error.code === 'auth/invalid-email') {
+                    console.log('That email address is invalid!');
+                }
+
+                console.error(error);
+            });
     };
 
     const handleLoginPress = () => {
@@ -13,13 +32,26 @@ const Signup = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Sign Up</Text>
-            <TextInput style={styles.input} placeholder="Email" />
-            <TextInput style={styles.input} placeholder="Username" />
-            <TextInput style={styles.input} placeholder="Password" secureTextEntry={true} />
+            <TextInput
+                style={styles.input}
+                placeholder="Email"
+                onChangeText={(text) => setSignupEmail(text)}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Username"
+                onChangeText={(text) => setSignupUsername(text)}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Password"
+                secureTextEntry={true}
+                onChangeText={(text) => setSignupPassword(text)}
+            />
             <TouchableOpacity style={styles.button} onPress={handleSignupPress}>
                 <Text style={styles.buttonText}>Sign Up</Text>
             </TouchableOpacity>
-            <Text style={styles.loginText}>Already have an account? <Text style={styles.loginTextColor} onPress={ handleLoginPress }>Login here!</Text></Text>
+            <Text style={styles.loginText}>Already have an account? <Text style={styles.loginTextColor} onPress={handleLoginPress}>Login here!</Text></Text>
         </View>
     );
 };
