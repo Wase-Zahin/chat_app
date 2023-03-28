@@ -1,18 +1,24 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Entypo';
 import ChatListItem from './ChatListItem';
 import auth from '@react-native-firebase/auth';
 
-const ChatList = ({ people }) => {
+const ChatList = ({ users, myId }) => {
   const navigation = useNavigation();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const menuRef = useRef(null);
 
-  const handleChatItemPress = (id) => {
-    navigation.navigate('ChatScreen', { chatId: id });
+  
+
+  const navigateToChatScreen = (id, avatar) => {
+    navigation.navigate('ChatScreen', { chatId: id, myId: myId, avatar: avatar });
   };
+
+  const navigateToUsersList = () => {
+    navigation.navigate('Users List');
+  }
 
   const handleMenuPress = () => {
     setIsMenuVisible(!isMenuVisible);
@@ -37,14 +43,20 @@ const ChatList = ({ people }) => {
             <Icon name="menu" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
+
         <View style={styles.listContainer}>
-          {people.length > 0 ? (
-            people.map((person) => (
+          {users.length > 0 ? (
+            users.map((user) => (
               <TouchableOpacity
-                key={person.id}
-                onPress={() => handleChatItemPress(person.id)}
+                key={user.id}
+                onPress={() => navigateToChatScreen(user.id, user.photoURL)}
               >
-                <ChatListItem name={person.data.name} />
+                <ChatListItem
+                  nameFirstLetter={user.displayName.charAt(0).toUpperCase()}
+                  name={user.displayName}
+                  avatar={user.photoURL}
+                  id={user.id}
+                />
               </TouchableOpacity>
             ))
           ) : (
@@ -53,24 +65,27 @@ const ChatList = ({ people }) => {
             </View>
           )}
         </View>
+
         {isMenuVisible && (
           <View style={styles.overlay}>
             <TouchableWithoutFeedback onPress={() => { }}>
               <View style={styles.menu} ref={menuRef}>
                 <Text style={styles.menuBar}>Menu</Text>
                 <View style={styles.menuItemContainer}>
+                  <Text style={styles.menuItem}>Profile</Text>
+                  <View style={styles.separator} />
+                  <Text
+                    style={styles.menuItem}
+                    onPress={() => navigateToUsersList()}>
+                    Users List
+                  </Text>
+                  <View style={styles.separator} />
                   <Text style={styles.menuItem} onPress={logout}>Logout</Text>
-                  <View style={styles.separator} />
-                  <Text style={styles.menuItem}>Menu Item 2</Text>
-                  <View style={styles.separator} />
-                  <Text style={styles.menuItem}>Menu Item 3</Text>
                 </View>
               </View>
             </TouchableWithoutFeedback>
           </View>
         )}
-
-
       </View>
     </TouchableWithoutFeedback>
   );

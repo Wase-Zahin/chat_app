@@ -1,18 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
-const Signup = ({ navigation, setSignupEmail, signupEmail, signupUsername, setSignupUsername, signupPassword, setSignupPassword }) => {
+const Signup = ({ navigation, user }) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
+
     const handleSignupPress = () => {
         auth()
-            .createUserWithEmailAndPassword(signupEmail, signupPassword)
-            .then(() => {
+            .createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
                 console.log('User account created & signed in!');
-                setSignupEmail('');
-                setSignupPassword('');
-                setSignupUsername('');
+
+                user
+                    .updateProfile({
+                        displayName: username,
+                    })
+                    .then(() => {
+                        console.log('User profile updated!');
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+
+                setEmail('');
+                setPassword('');
+                setUsername('');
             })
-            .catch(error => {
+            .catch((error) => {
                 if (error.code === 'auth/email-already-in-use') {
                     console.log('That email address is already in use!');
                 }
@@ -20,9 +38,9 @@ const Signup = ({ navigation, setSignupEmail, signupEmail, signupUsername, setSi
                 if (error.code === 'auth/invalid-email') {
                     console.log('That email address is invalid!');
                 }
-
                 console.error(error);
             });
+
     };
 
     const handleLoginPress = () => {
@@ -35,18 +53,18 @@ const Signup = ({ navigation, setSignupEmail, signupEmail, signupUsername, setSi
             <TextInput
                 style={styles.input}
                 placeholder="Email"
-                onChangeText={(text) => setSignupEmail(text)}
+                onChangeText={(text) => setEmail(text)}
             />
             <TextInput
                 style={styles.input}
                 placeholder="Username"
-                onChangeText={(text) => setSignupUsername(text)}
+                onChangeText={(text) => setUsername(text)}
             />
             <TextInput
                 style={styles.input}
                 placeholder="Password"
                 secureTextEntry={true}
-                onChangeText={(text) => setSignupPassword(text)}
+                onChangeText={(text) => setPassword(text)}
             />
             <TouchableOpacity style={styles.button} onPress={handleSignupPress}>
                 <Text style={styles.buttonText}>Sign Up</Text>

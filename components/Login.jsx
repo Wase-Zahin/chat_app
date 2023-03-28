@@ -3,7 +3,6 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Login = ({ navigation }) => {
   GoogleSignin.configure({
@@ -46,9 +45,6 @@ const Login = ({ navigation }) => {
       <Text style={styles.signupButtonText}>Doesn't have an account? 
         <Text style={styles.signupTextColor} onPress={handleSignupPress}> Sign up here!</Text>
       </Text>
-      {/* <TouchableOpacity style={styles.button} onPress={handleSignupPress}>
-        <Text style={styles.buttonText}>Signup</Text>
-      </TouchableOpacity> */}
 
       {/* line between login signup button and icons */}
       <View style={styles.lineContainer}>

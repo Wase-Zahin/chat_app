@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 
 const ChatScreen = ({ route }) => {
@@ -7,9 +7,11 @@ const ChatScreen = ({ route }) => {
   const [inputMessage, setInputMessage] = useState('');
 
   // get the chatId from the route params
-  const { chatId } = route.params;
+  const { chatId, myId, avatar } = route.params;
 
   useEffect(() => {
+    console.log(myId, chatId, avatar);
+
     const unsubscribe = firestore()
       .collection('chats')
       .doc(chatId)
@@ -36,6 +38,7 @@ const ChatScreen = ({ route }) => {
     const message = {
       text: inputMessage,
       createdAt: new Date(),
+      senderId: myId,
     };
 
     try {
@@ -50,11 +53,19 @@ const ChatScreen = ({ route }) => {
     <View style={styles.container}>
       <View style={styles.messagesContainer}>
         {messages.map((message) => (
-          <View key={message.id} style={[styles.messageBubble, message.sender === 'user' ? styles.userBubble : styles.otherBubble]}>
+          <View style={[
+            styles.messageBubble,
+            message.senderId === myId ? styles.userBubble : styles.otherBubble,
+          ]}>
+            {message.senderId !== myId && (
+              <Image source={{ uri: avatar }} style={styles.avatar} />
+            )}
             <Text style={styles.messageText}>{message.text}</Text>
           </View>
         ))}
       </View>
+
+
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -80,6 +91,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
     maxWidth: '80%',
     padding: 10,
     borderRadius: 10,
@@ -88,11 +101,14 @@ const styles = StyleSheet.create({
   userBubble: {
     alignSelf: 'flex-end',
     backgroundColor: '#5FB9F6',
+    marginLeft: '20%',
   },
   otherBubble: {
     alignSelf: 'flex-start',
     backgroundColor: '#EAEAEA',
+    marginRight: '20%',
   },
+  
   messageText: {
     fontSize: 18,
     color: '#333333',
@@ -118,6 +134,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  avatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginRight: 10,
   },
 });
 

@@ -7,14 +7,13 @@ import ChatList from './components/ChatList';
 import Signup from './components/Signup';
 import ChatScreen from './components/ChatScreen';
 import auth from '@react-native-firebase/auth';
+import UsersList from './components/UsersList';
 
 export default function App() {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState();
-  const [people, setPeople] = useState([]);
-  const [signupUsername, setSignupUsername] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
+  const [users, setUsers] = useState([]);
+  const [myId, setMyId] = useState();
 
   const Stack = createNativeStackNavigator();
 
@@ -38,31 +37,34 @@ export default function App() {
         .catch(error => {
           console.error('Error adding user to firestore: ', error);
         });
+      setMyId(user.uid);
     }
   }
 
-
+  // get the users list
   useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    // console.log(user)
-    return subscriber; // unsubscribe on unmount
+    const unsubscribe = firestore()
+      .collection('users')
+      .onSnapshot(querySnapshot => {
+        const usersData = [];
+
+        querySnapshot.forEach(documentSnapshot => {
+          const userData = {
+            id: documentSnapshot.id,
+            ...documentSnapshot.data()
+          };
+          usersData.push(userData);
+        });
+
+        setUsers(usersData);
+      });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('chats')
-      .onSnapshot(querySnapshot => {
-        const people = [];
-
-        querySnapshot.forEach(documentSnapshot => {
-          people.push({
-            id: documentSnapshot.id,
-            data: documentSnapshot.data(),
-          });
-        });
-        setPeople(people);
-      });
-    return () => unsubscribe();
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
   }, []);
 
   if (initializing) return null;
@@ -72,7 +74,9 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Login">
           <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Signup" component={Signup} />
+          <Stack.Screen name="Signup"
+            component={Signup} />
+          {/* children={() => <Signup user={user} />} /> */}
         </Stack.Navigator>
       </NavigationContainer>
     );
@@ -83,22 +87,17 @@ export default function App() {
       <Stack.Navigator initialRouteName="Chats">
         <Stack.Screen
           name="Chats"
-          children={() => <ChatList people={people} />}
+          children={() => <ChatList users={users} myId={myId} />}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Signup"
-          children={() => <Signup
-            user={user}
-            setSignupEmail={setSignupEmail}
-            signupEmail={signupEmail}
-            setSignupUsername={setSignupUsername}
-            signupUsername={signupUsername}
-            setSignupPassword={setSignupPassword}
-            signupPassword={signupPassword}
-          />}
+          name='ChatScreen'
+          component={ChatScreen}
         />
-        <Stack.Screen name='ChatScreen' component={ChatScreen} />
+        <Stack.Screen
+          name='Users List'
+          children={() => <UsersList users={users} />}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   )
