@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 
-const Signup = ({ navigation, user }) => {
+const Signup = ({ navigation, setUpdatedProfile }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
@@ -21,6 +20,7 @@ const Signup = ({ navigation, user }) => {
                     })
                     .then(() => {
                         console.log('User profile updated!');
+                        setUpdatedProfile(username);
                     })
                     .catch((error) => {
                         console.error(error);

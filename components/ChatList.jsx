@@ -10,10 +10,12 @@ const ChatList = ({ users, myId }) => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const menuRef = useRef(null);
 
+  useEffect(() => {
+    console.log(users);
+  });
   
-
-  const navigateToChatScreen = (id, avatar) => {
-    navigation.navigate('ChatScreen', { chatId: id, myId: myId, avatar: avatar });
+  const navigateToChatScreen = (id, avatar, nameFirstLetter) => {
+    navigation.navigate('ChatScreen', { chatId: id, myId: myId, avatar: avatar, nameFirstLetter: nameFirstLetter });
   };
 
   const navigateToUsersList = () => {
@@ -49,10 +51,13 @@ const ChatList = ({ users, myId }) => {
             users.map((user) => (
               <TouchableOpacity
                 key={user.id}
-                onPress={() => navigateToChatScreen(user.id, user.photoURL)}
+                onPress={() => navigateToChatScreen(user.id, user.photoURL, user.displayName
+                  ?
+                  user.displayName.charAt(0).toUpperCase() : ''
+                )}
               >
                 <ChatListItem
-                  nameFirstLetter={user.displayName.charAt(0).toUpperCase()}
+                  nameFirstLetter={user.displayName ? user.displayName.charAt(0).toUpperCase() : ''}
                   name={user.displayName}
                   avatar={user.photoURL}
                   id={user.id}
@@ -166,8 +171,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
     width: '100%',
   },
-
 });
-
 
 export default ChatList;

@@ -7,10 +7,11 @@ const ChatScreen = ({ route }) => {
   const [inputMessage, setInputMessage] = useState('');
 
   // get the chatId from the route params
-  const { chatId, myId, avatar } = route.params;
+  const { chatId, myId, avatar, nameFirstLetter } = route.params;
 
   useEffect(() => {
-    console.log(myId, chatId, avatar);
+    // console.log(myId, chatId, avatar);
+    console.log(inputMessage);
 
     const unsubscribe = firestore()
       .collection('chats')
@@ -28,7 +29,7 @@ const ChatScreen = ({ route }) => {
       });
 
     return () => unsubscribe();
-  }, []);
+  }, [inputMessage]);
 
   const sendMessage = async () => {
     if (inputMessage === '') {
@@ -41,9 +42,24 @@ const ChatScreen = ({ route }) => {
       senderId: myId,
     };
 
+    const chatRef = firestore().collection('chats').doc(chatId);
+    const chatDoc = await chatRef.get();
+
+    if (!chatDoc.exists) {
+      // Create the `chats` document
+      try {
+        await chatRef.set({ created: new Date() });
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+    }
+
+    // Add the message to the `messages` collection
     try {
-      await firestore().collection('chats').doc(chatId).collection('messages').add(message);
+      await chatRef.collection('messages').add(message);
       setInputMessage('');
+      return;
     } catch (error) {
       console.log(error);
     }
@@ -53,12 +69,19 @@ const ChatScreen = ({ route }) => {
     <View style={styles.container}>
       <View style={styles.messagesContainer}>
         {messages.map((message) => (
-          <View style={[
-            styles.messageBubble,
-            message.senderId === myId ? styles.userBubble : styles.otherBubble,
-          ]}>
+          <View
+            key={message.id}
+            style={[
+              styles.messageBubble,
+              message.senderId === myId ? styles.userBubble : styles.otherBubble,
+            ]}>
             {message.senderId !== myId && (
-              <Image source={{ uri: avatar }} style={styles.avatar} />
+              avatar ?
+                (<Image source={{ uri: avatar }} style={styles.avatar} />)
+                :
+                (<View style={styles.avatar}>
+                  <Text style={styles.nameFirstLetter}>{nameFirstLetter}</Text>
+                </View>)
             )}
             <Text style={styles.messageText}>{message.text}</Text>
           </View>
@@ -108,7 +131,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EAEAEA',
     marginRight: '20%',
   },
-  
+
   messageText: {
     fontSize: 18,
     color: '#333333',

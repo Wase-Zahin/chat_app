@@ -1,49 +1,38 @@
 import { View, Text, Image, StyleSheet } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
 
-
-export default function ChatListItem({ name, avatar, nameFirstLetter, lastSentMessage, lastSentTime, id }) {
-    console.log(id)
+export default function ChatListItem({ name, avatar, nameFirstLetter, id }) {
+    const [lastSentMessage, setLastSentMessage] = useState('');
+    const [lastSentTime, setLastSentTime] = useState('');
 
     useEffect(() => {
-        firestore()
-            .collection('chats')
-            .get()
-            .then(querySnapshot => {
-                console.log('Total chats: ', querySnapshot.size);
+        const options = {
+            timeZone: 'Asia/Hong_Kong',
+            hour12: true,
+            hour: 'numeric',
+            minute: 'numeric'
+        };
 
-                querySnapshot.forEach(documentSnapshot => {
-                    console.log('User ID: ', documentSnapshot.id, documentSnapshot.data());
+        const unsubscribe = firestore()
+            .collection('chats')
+            .doc(id)
+            .collection('messages')
+            .orderBy('createdAt', 'desc')
+            .limit(1)
+            .onSnapshot((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const { text, createdAt } = doc.data();
+                    setLastSentMessage(text);
+                    setLastSentTime(createdAt.toDate().toLocaleString('en-US', options));
                 });
             });
-    })
-    // useEffect(() => {
-    //     const chatsRef = firestore().collection('chats');
 
-    //     chatsRef.get().then((chatsSnapshot) => {
-    //         console.log(chatsSnapshot);
-    //         console.log(chatsSnapshot.docs);
-    //         const chatDocs = chatsSnapshot.docs;
-    //         chatDocs.forEach((chatDoc) => {
-    //             const messagesRef = chatDoc.ref.collection('messages').orderBy('timestamp', 'desc').limit(1);
-
-    //             messagesRef.get().then((messagesSnapshot) => {
-    //                 const lastMessageDoc = messagesSnapshot.docs[0];
-    //                 console.log('Last message for chat', chatDoc.id, ':', lastMessageDoc.data());
-    //             }).catch((error) => {
-    //                 console.error('Error fetching last message:', error);
-    //             });
-    //         });
-    //     }).catch((error) => {
-    //         console.error('Error fetching chats:', error);
-    //     });
-
-    // }, []);
+        return () => unsubscribe();
+    }, []);
 
     return (
         <View style={styles.container}>
-            {/* if photoURL is not null */}
             {avatar ? (
                 <Image style={styles.avatar} source={{ uri: avatar }} />
             ) : (
@@ -63,10 +52,10 @@ export default function ChatListItem({ name, avatar, nameFirstLetter, lastSentMe
                     </View>
                 </View>
             </View>
-
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: {

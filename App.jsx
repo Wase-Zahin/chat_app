@@ -14,6 +14,7 @@ export default function App() {
   const [user, setUser] = useState();
   const [users, setUsers] = useState([]);
   const [myId, setMyId] = useState();
+  const [updatedProfile, setUpdatedProfile] = useState();
 
   const Stack = createNativeStackNavigator();
 
@@ -65,7 +66,7 @@ export default function App() {
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
     return subscriber; // unsubscribe on unmount
-  }, []);
+  }, [updatedProfile]);
 
   if (initializing) return null;
 
@@ -75,8 +76,8 @@ export default function App() {
         <Stack.Navigator initialRouteName="Login">
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Signup"
-            component={Signup} />
-          {/* children={() => <Signup user={user} />} /> */}
+            // component={Signup} />
+          children={() => <Signup setUpdatedProfile={setUpdatedProfile} />} /> 
         </Stack.Navigator>
       </NavigationContainer>
     );
