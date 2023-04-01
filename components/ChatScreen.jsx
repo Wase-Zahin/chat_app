@@ -10,13 +10,12 @@ const ChatScreen = ({ route }) => {
   const { chatId, myId, avatar, nameFirstLetter } = route.params;
 
   useEffect(() => {
-    // console.log(myId, chatId, avatar);
-    console.log(inputMessage);
-
     const unsubscribe = firestore()
-      .collection('chats')
+      .collection('users')
+      .doc(myId)
+      .collection('chats_list')
       .doc(chatId)
-      .collection('messages')
+      .collection('chats')
       .orderBy('createdAt', 'asc')
       .onSnapshot((querySnapshot) => {
         const messages = querySnapshot.docs.map((doc) => {
@@ -29,7 +28,7 @@ const ChatScreen = ({ route }) => {
       });
 
     return () => unsubscribe();
-  }, [inputMessage]);
+  }, []);
 
   const sendMessage = async () => {
     if (inputMessage === '') {
@@ -42,11 +41,15 @@ const ChatScreen = ({ route }) => {
       senderId: myId,
     };
 
-    const chatRef = firestore().collection('chats').doc(chatId);
+    const chatRef = firestore()
+      .collection('users')
+      .doc(myId)
+      .collection('chats_list')
+      .doc(chatId);
     const chatDoc = await chatRef.get();
 
     if (!chatDoc.exists) {
-      // Create the `chats` document
+      // Create the `chats` document for the recipient
       try {
         await chatRef.set({ created: new Date() });
       } catch (error) {
@@ -55,9 +58,9 @@ const ChatScreen = ({ route }) => {
       }
     }
 
-    // Add the message to the `messages` collection
+    // Add the message to the `chats` collection
     try {
-      await chatRef.collection('messages').add(message);
+      await chatRef.collection('chats').add(message);
       setInputMessage('');
       return;
     } catch (error) {

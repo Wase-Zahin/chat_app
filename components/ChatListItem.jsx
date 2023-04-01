@@ -2,7 +2,7 @@ import { View, Text, Image, StyleSheet } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
 
-export default function ChatListItem({ name, avatar, nameFirstLetter, id }) {
+export default function ChatListItem({ name, avatar, nameFirstLetter, chatId, myId }) {
     const [lastSentMessage, setLastSentMessage] = useState('');
     const [lastSentTime, setLastSentTime] = useState('');
 
@@ -15,9 +15,11 @@ export default function ChatListItem({ name, avatar, nameFirstLetter, id }) {
         };
 
         const unsubscribe = firestore()
+            .collection('users')
+            .doc(myId)
+            .collection('chats_list')
+            .doc(chatId)
             .collection('chats')
-            .doc(id)
-            .collection('messages')
             .orderBy('createdAt', 'desc')
             .limit(1)
             .onSnapshot((querySnapshot) => {

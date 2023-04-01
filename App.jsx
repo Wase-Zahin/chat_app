@@ -6,6 +6,7 @@ import Login from './components/Login';
 import ChatList from './components/ChatList';
 import Signup from './components/Signup';
 import ChatScreen from './components/ChatScreen';
+import Profile from './components/Profile';
 import auth from '@react-native-firebase/auth';
 import UsersList from './components/UsersList';
 
@@ -15,6 +16,7 @@ export default function App() {
   const [users, setUsers] = useState([]);
   const [myId, setMyId] = useState();
   const [updatedProfile, setUpdatedProfile] = useState();
+  const [chatListItems, setChatListItems] = useState([]);
 
   const Stack = createNativeStackNavigator();
 
@@ -42,6 +44,7 @@ export default function App() {
     }
   }
 
+  console.log(myId);
   // get the users list
   useEffect(() => {
     const unsubscribe = firestore()
@@ -77,7 +80,7 @@ export default function App() {
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Signup"
             // component={Signup} />
-          children={() => <Signup setUpdatedProfile={setUpdatedProfile} />} /> 
+            children={() => <Signup setUpdatedProfile={setUpdatedProfile} />} />
         </Stack.Navigator>
       </NavigationContainer>
     );
@@ -88,7 +91,12 @@ export default function App() {
       <Stack.Navigator initialRouteName="Chats">
         <Stack.Screen
           name="Chats"
-          children={() => <ChatList users={users} myId={myId} />}
+          children={() =>
+            <ChatList
+              users={users}
+              myId={myId}
+              chatListItems={chatListItems}
+            />}
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -97,7 +105,23 @@ export default function App() {
         />
         <Stack.Screen
           name='Users List'
-          children={() => <UsersList users={users} />}
+          children={() =>
+            <UsersList
+              users={users}
+              myId={myId}
+              chatListItems={chatListItems}
+              setChatListItems={setChatListItems}
+            />}
+        />
+        <Stack.Screen
+          name='User Profile'
+          children={() =>
+            <Profile
+              users={users}
+              myId={myId}
+              chatListItems={chatListItems}
+              setChatListItems={setChatListItems}
+            />}
         />
       </Stack.Navigator>
     </NavigationContainer>

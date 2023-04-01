@@ -1,16 +1,35 @@
-import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 
-const Login = ({ navigation }) => {
+const Login = () => {
+  const navigation = useNavigation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+
   GoogleSignin.configure({
     webClientId: "1098236165647-015uknfsfbv3itmt33kah8dpkomoa8rq.apps.googleusercontent.com",
   });
 
   const handleLoginPress = () => {
-    // handle login logic
+    if (!email || !password) {
+      setEmailError(!email);
+      setPasswordError(!password);
+      return;
+    }
+
+    auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(() => {
+        console.log('User signed in successfully!');
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   const handleSignupPress = () => {
@@ -37,12 +56,21 @@ const Login = ({ navigation }) => {
     // input
     <View style={styles.container}>
       <Text style={styles.title}>Chat App</Text>
-      <TextInput style={styles.input} placeholder="Username" />
-      <TextInput style={styles.input} placeholder="Password" secureTextEntry={true} />
+      <TextInput
+        onChangeText={(text) => setEmail(text)}
+        style={[styles.input, emailError && styles.errorInput]}
+        placeholder="Email" />
+      {emailError && <Text style={styles.errorMessage}>Please enter a valid email address</Text>}
+      <TextInput
+        onChangeText={(text) => setPassword(text)}
+        style={[styles.input, passwordError && styles.errorInput]}
+        placeholder="Password"
+        secureTextEntry={true} />
+      {passwordError && <Text style={styles.errorMessage}>Please enter a password</Text>}
       <TouchableOpacity style={styles.button} onPress={handleLoginPress}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
-      <Text style={styles.signupButtonText}>Doesn't have an account? 
+      <Text style={styles.signupButtonText}>Doesn't have an account?
         <Text style={styles.signupTextColor} onPress={handleSignupPress}> Sign up here!</Text>
       </Text>
 
@@ -139,7 +167,17 @@ const styles = StyleSheet.create({
   },
   signupTextColor: {
     color: '#007aff',
-  }
+  },
+  errorInput: {
+    borderColor: 'red',
+  },
+  errorMessage: {
+    alignSelf: 'flex-start',
+    color: 'red',
+    paddingLeft: 40,
+    width: '80%',
+    marginBottom: 16,
+  },
 });
 
 export default Login;

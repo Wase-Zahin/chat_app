@@ -4,16 +4,28 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Entypo';
 import ChatListItem from './ChatListItem';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
-const ChatList = ({ users, myId }) => {
+const ChatList = ({ users, myId, chatListItems }) => {
   const navigation = useNavigation();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
-    console.log(users);
-  });
-  
+    const unsubscribe = firestore()
+      .collection('users')
+      .doc(myId)
+      .collection('chats_list')
+      .onSnapshot((snapshot) => {
+        console.log(snapshot);
+        const exists = !snapshot.empty;
+        console.log(`chats exists: ${exists}`);
+      });
+    return () => unsubscribe();
+  }, []);
+
+  console.log(chatListItems);
+
   const navigateToChatScreen = (id, avatar, nameFirstLetter) => {
     navigation.navigate('ChatScreen', { chatId: id, myId: myId, avatar: avatar, nameFirstLetter: nameFirstLetter });
   };
@@ -22,6 +34,10 @@ const ChatList = ({ users, myId }) => {
     navigation.navigate('Users List');
   }
 
+  const navigateToUserProfile = () => {
+    navigation.navigate('User Profile');
+  }
+  
   const handleMenuPress = () => {
     setIsMenuVisible(!isMenuVisible);
   };
@@ -47,8 +63,8 @@ const ChatList = ({ users, myId }) => {
         </View>
 
         <View style={styles.listContainer}>
-          {users.length > 0 ? (
-            users.map((user) => (
+          {chatListItems.length > 0 ? (
+            chatListItems.map((user) => (
               <TouchableOpacity
                 key={user.id}
                 onPress={() => navigateToChatScreen(user.id, user.photoURL, user.displayName
@@ -60,7 +76,8 @@ const ChatList = ({ users, myId }) => {
                   nameFirstLetter={user.displayName ? user.displayName.charAt(0).toUpperCase() : ''}
                   name={user.displayName}
                   avatar={user.photoURL}
-                  id={user.id}
+                  chatId={user.id}
+                  myId={myId}
                 />
               </TouchableOpacity>
             ))
@@ -77,7 +94,11 @@ const ChatList = ({ users, myId }) => {
               <View style={styles.menu} ref={menuRef}>
                 <Text style={styles.menuBar}>Menu</Text>
                 <View style={styles.menuItemContainer}>
-                  <Text style={styles.menuItem}>Profile</Text>
+                  <Text
+                    style={styles.menuItem}
+                    onPress={() => navigateToUserProfile()}>
+                    Profile
+                  </Text>
                   <View style={styles.separator} />
                   <Text
                     style={styles.menuItem}
