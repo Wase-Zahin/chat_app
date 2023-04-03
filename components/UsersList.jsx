@@ -26,7 +26,7 @@ export default function UsersList({ users, myId, chatListItems, setChatListItems
                         <Image style={styles.profilePic} source={{ uri: item.photoURL }} />
                     ) : (
                         <View style={styles.profilePic}>
-                            <Text style={styles.nameFirstLetter}>{item.displayName.charAt(0).toUpperCase()}</Text>
+                            <Text style={styles.nameFirstLetter}>{item.displayName ? item.displayName.charAt(0).toUpperCase() : ""}</Text>
                         </View>
                     )}
                     {/* <Image style={styles.profilePic} source={{ uri: item.photoURL }} /> */}

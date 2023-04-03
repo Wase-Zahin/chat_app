@@ -80,11 +80,16 @@ export default function App() {
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Signup"
             // component={Signup} />
-            children={() => <Signup setUpdatedProfile={setUpdatedProfile} />} />
+            children={() =>
+              <Signup
+                setUpdatedProfile={setUpdatedProfile} />}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     );
   }
+
+  console.log(users)
 
   return (
     <NavigationContainer>
@@ -93,7 +98,6 @@ export default function App() {
           name="Chats"
           children={() =>
             <ChatList
-              users={users}
               myId={myId}
               chatListItems={chatListItems}
             />}
@@ -117,10 +121,7 @@ export default function App() {
           name='User Profile'
           children={() =>
             <Profile
-              users={users}
-              myId={myId}
-              chatListItems={chatListItems}
-              setChatListItems={setChatListItems}
+              setUpdatedProfile={setUpdatedProfile}
             />}
         />
       </Stack.Navigator>

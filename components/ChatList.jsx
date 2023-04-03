@@ -1,30 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Entypo';
 import ChatListItem from './ChatListItem';
 import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 
-const ChatList = ({ users, myId, chatListItems }) => {
+
+const ChatList = ({ myId, chatListItems }) => {
   const navigation = useNavigation();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const menuRef = useRef(null);
-
-  useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('users')
-      .doc(myId)
-      .collection('chats_list')
-      .onSnapshot((snapshot) => {
-        console.log(snapshot);
-        const exists = !snapshot.empty;
-        console.log(`chats exists: ${exists}`);
-      });
-    return () => unsubscribe();
-  }, []);
-
-  console.log(chatListItems);
 
   const navigateToChatScreen = (id, avatar, nameFirstLetter) => {
     navigation.navigate('ChatScreen', { chatId: id, myId: myId, avatar: avatar, nameFirstLetter: nameFirstLetter });

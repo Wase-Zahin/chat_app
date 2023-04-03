@@ -5,6 +5,29 @@ import firestore from '@react-native-firebase/firestore';
 export default function ChatListItem({ name, avatar, nameFirstLetter, chatId, myId }) {
     const [lastSentMessage, setLastSentMessage] = useState('');
     const [lastSentTime, setLastSentTime] = useState('');
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        const unsubscribe = firestore()
+            .collection('users')
+            .doc(myId)
+            .collection('chats_list')
+            .doc(chatId)
+            .onSnapshot((doc) => {
+                setUnreadCount(doc.data()?.unreadCount || 0);
+            });
+
+        return () => unsubscribe();
+    }, []);
+
+    const incrementUnreadCount = () => {
+        firestore()
+            .collection('users')
+            .doc(myId)
+            .collection('chats_list')
+            .doc(chatId)
+            .update({ unreadCount: firebase.firestore.FieldValue.increment(1) });
+    };
 
     useEffect(() => {
         const options = {
@@ -27,6 +50,9 @@ export default function ChatListItem({ name, avatar, nameFirstLetter, chatId, my
                     const { text, createdAt } = doc.data();
                     setLastSentMessage(text);
                     setLastSentTime(createdAt.toDate().toLocaleString('en-US', options));
+                    if (doc.data()?.senderId !== myId && !doc.data()?.read) {
+                        incrementUnreadCount();
+                    }
                 });
             });
 
@@ -49,9 +75,11 @@ export default function ChatListItem({ name, avatar, nameFirstLetter, chatId, my
                 </View>
                 <View style={styles.lower}>
                     <Text style={styles.message}>{lastSentMessage}</Text>
-                    <View style={styles.unreadContainer}>
-                        <Text style={styles.unreadCount}>3</Text>
-                    </View>
+                    {unreadCount > 0 && (
+                        <View style={styles.unreadContainer}>
+                            <Text style={styles.unreadCount}>{unreadCount}</Text>
+                        </View>
+                    )}
                 </View>
             </View>
         </View>
